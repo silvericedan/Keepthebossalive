@@ -27,6 +27,8 @@ public class GameController : MonoBehaviour
     [Space]
     [Tooltip("A donde se va a mover la camara cuando haya una pelea.")]
     public Transform battlePlaceTransform;
+
+    public Transform mapPlaceTransform;
     [Space]
     [Tooltip("Para disparar la pelea.")]
     public GameObject fightButton;
@@ -52,6 +54,7 @@ public class GameController : MonoBehaviour
     #region Private variables
     private int randomNumber;
     private Vector3 battlePosition;
+    private Vector3 mapPosition;
     private bool exclamationSpawned;
     private Coroutine heroesAdvance;
     private int roomHeroesAt;
@@ -60,6 +63,13 @@ public class GameController : MonoBehaviour
     private GameObject[] heroesPosition;
     private GameObject[] minionsPosition;
     #endregion
+
+    public List<Mob> rosterMinions;
+    public List<Mob> rosterTroops;
+
+    public GameObject botonCombate;
+    private BattleMechanics scriptBotonCombate;
+
     private void Awake()
     {
         if(instance == null)
@@ -82,13 +92,22 @@ public class GameController : MonoBehaviour
         score = 0;
         screenbounds = GetScreenBounds();
         battlePosition = battlePlaceTransform.position;
+        mapPosition = mapPlaceTransform.position;
         randomNumber = 0;
         exclamationSpawned = false;
         roomHeroesAt = 0;
         inBattle = false;
         heroesPosition = GameObject.FindGameObjectsWithTag("HeroesPosition");
         minionsPosition = GameObject.FindGameObjectsWithTag("MinionsPosition");
-        
+
+        rosterMinions.Add(new Zombie());
+        rosterMinions.Add(new Zombie());
+        rosterMinions.Add(new Zombie());
+
+        rosterTroops.Add(new Farmer());
+        rosterTroops.Add(new Farmer());
+        rosterTroops.Add(new Farmer());
+
     }
 
     // Update is called once per frame
@@ -122,6 +141,14 @@ public class GameController : MonoBehaviour
         
         SetCameraPosition(battlePosition);
         uiControllerInstance.DisableLairUI();
+    }
+
+    public void ExitBattlefield()
+    {
+        SetCameraPosition(mapPosition);
+        uiControllerInstance.EnableLairUI();
+        heroesAdvance = StartCoroutine(HeroesAdvance());
+        inBattle = false;
     }
     public void SetCameraPosition(Vector3 position)
     {
@@ -170,17 +197,20 @@ public class GameController : MonoBehaviour
     GameObject heroInFight;
     public IEnumerator Battle()
     {
-         minionInFigth = Instantiate(minions[0], minionsPosition[0].transform.position, Quaternion.identity);
-         heroInFight = Instantiate(heroes[0], heroesPosition[0].transform.position, Quaternion.identity);
-        minionInFigth.GetComponent<MinionController>().SetHitpoint(100);
-        heroInFight.GetComponent<HeroesController>().SetHitpoint(100);
+         //minionInFigth = Instantiate(minions[0], minionsPosition[0].transform.position, Quaternion.identity);
+         //heroInFight = Instantiate(heroes[0], heroesPosition[0].transform.position, Quaternion.identity);
+        //minionInFigth.GetComponent<MinionController>().SetHitpoint(100);
+        //heroInFight.GetComponent<HeroesController>().SetHitpoint(100);
         yield return new WaitForSeconds(2);
         StartCoroutine(TheBattle());
     }
 
     private IEnumerator TheBattle()
     {
-        Debug.Log(minionInFigth.GetComponent<MinionController>().GetHitpoint());
+        scriptBotonCombate = botonCombate.GetComponent<BattleMechanics>();
+        scriptBotonCombate.setMinions(rosterMinions);
+        scriptBotonCombate.setTroops(rosterTroops);
+     
         yield return null;
     }
     // Cuando un minion se meuere
