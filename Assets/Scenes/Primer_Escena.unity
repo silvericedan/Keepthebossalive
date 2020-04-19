@@ -1750,6 +1750,27 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameManager
       objectReference: {fileID: 0}
+    - target: {fileID: 7336422257191003934, guid: a2d3304afa8874448917286cc31d4230,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: a6145e53282dcc049a5e4be84702e010,
+        type: 3}
+    - target: {fileID: 7336422257191003934, guid: a2d3304afa8874448917286cc31d4230,
+        type: 3}
+      propertyPath: m_Size.x
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7336422257191003934, guid: a2d3304afa8874448917286cc31d4230,
+        type: 3}
+      propertyPath: m_Size.y
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7336422257191003934, guid: a2d3304afa8874448917286cc31d4230,
+        type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7336422257191003935, guid: a2d3304afa8874448917286cc31d4230,
         type: 3}
       propertyPath: rooms.Array.size
