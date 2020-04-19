@@ -16,6 +16,8 @@ public class GameController : MonoBehaviour
     public Vector3 screenbounds;
     public DayNight dayNight = DayNight.Day;
     public GameObject uiController;
+    public UiController uiControllerInstance;
+    public GameObject fightButton;
     #endregion
 
     private void Awake()
@@ -35,6 +37,9 @@ public class GameController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        uiControllerInstance = uiController.GetComponent<UiController>();
+        Debug.Log(uiControllerInstance);
+        
         minionsCount = 0;
         score = 0;
         screenbounds = GetScreenBounds();
@@ -44,16 +49,31 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (fightButton.GetComponent<FightButton>().goToFight)
+        {
+            GoToBattlefield();
+        }
         if (Input.GetKeyDown(KeyCode.S))
         {
-            uiController.GetComponent<UiController>().ChangeDayNight();
             // FOR DEBUG only
-            // SetCameraPosition( battlePosition);
+            uiControllerInstance.ChangeDayNight();
         }
-    }
-  
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            // FOR DEBUG only
+            GoToBattlefield();
+        }
 
-    private void SetCameraPosition(Vector3 position)
+
+    }
+    
+    public void GoToBattlefield()
+    {
+        
+        SetCameraPosition(battlePosition);
+        uiControllerInstance.DisableLairUI();
+    }
+    public void SetCameraPosition(Vector3 position)
     {
         Camera mainCamera = Camera.main;
         mainCamera.gameObject.transform.position = new Vector3(
@@ -73,4 +93,6 @@ public class GameController : MonoBehaviour
         minionsCount++;
 
     }
+    // Cuando un minion se meuere
+    // Cuando matas un heroe se suma un body
 }

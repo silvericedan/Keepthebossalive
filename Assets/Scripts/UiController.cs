@@ -7,6 +7,7 @@ public class UiController : MonoBehaviour
 {
     public Text minionText;
     public Text DayNightText;
+    public GameObject lair;
     // Start is called before the first frame update
     void Start()
     {
@@ -32,5 +33,18 @@ public class UiController : MonoBehaviour
         {
             DayNightText.text = "Day";
         }
+    }
+    public void ToggleLairUI()
+    {
+        lair.SetActive(!lair.activeSelf);
     } 
+
+    public void DisableLairUI()
+    {
+        lair.SetActive(false);
+    }
+    public void EnableLairUI()
+    {
+        lair.SetActive(true);
+    }
 }
