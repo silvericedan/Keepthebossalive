@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -90,7 +91,7 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        randomNumber = Random.Range(0, 100000);
+        randomNumber = UnityEngine.Random.Range(0, 100000);
 
         if (!inBattle && exclamationSpawned && fightButton.GetComponent<FightButton>().goToFight)
         {
@@ -142,7 +143,7 @@ public class GameController : MonoBehaviour
     {
         while(roomHeroesAt< rooms.Count)
         {
-            yield return new WaitForSeconds(Random.Range(4, 10));
+            yield return new WaitForSeconds(UnityEngine.Random.Range(4, 10));
             exclamationInstance.transform.position = rooms[roomHeroesAt].position;
             roomHeroesAt++;
         }
@@ -160,10 +161,21 @@ public class GameController : MonoBehaviour
             dayNight = DayNight.Day;
         }
     }
+    GameObject minionInFigth;
+    GameObject heroInFight;
     public IEnumerator Battle()
     {
-        Instantiate(minions[0], minionsPosition[0].transform.position, Quaternion.identity);
-        Instantiate(heroes[0], heroesPosition[0].transform.position, Quaternion.identity);
+         minionInFigth = Instantiate(minions[0], minionsPosition[0].transform.position, Quaternion.identity);
+         heroInFight = Instantiate(heroes[0], heroesPosition[0].transform.position, Quaternion.identity);
+        minionInFigth.GetComponent<MinionController>().SetHitpoint(100);
+        heroInFight.GetComponent<HeroesController>().SetHitpoint(100);
+        yield return new WaitForSeconds(2);
+        StartCoroutine(TheBattle());
+    }
+
+    private IEnumerator TheBattle()
+    {
+        Debug.Log(minionInFigth.GetComponent<MinionController>().GetHitpoint());
         yield return null;
     }
     // Cuando un minion se meuere
