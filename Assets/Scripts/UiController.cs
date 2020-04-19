@@ -23,9 +23,9 @@ public class UiController : MonoBehaviour
         minionText.text = string.Format("Minions: {0}", minionCount);
     }
 
-    public void ChangeDayNight()
+    public void ChangeDayNight(DayNight dayNight)
     {
-        if (DayNightText.text == "Day")
+        if (dayNight == DayNight.Day)
         {
             DayNightText.text = "Night";
         }

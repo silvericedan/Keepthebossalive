@@ -6,20 +6,56 @@ using UnityEngine.SceneManagement;
 public enum DayNight { Day, Night }
 public class GameController : MonoBehaviour
 {
-    #region Variables 
+    #region Public Variables 
+    [HideInInspector]
     public static GameController instance = null;
+    [HideInInspector]
     public int score;
-    private Vector3 battlePosition;
-    public Transform battlePlaceTransform;
+    [HideInInspector]
     public int minionsCount;
+    [HideInInspector]
     public int bodyCarcassCount;
+    [HideInInspector]
     public Vector3 screenbounds;
+    [HideInInspector]
     public DayNight dayNight = DayNight.Day;
-    public GameObject uiController;
-    public UiController uiControllerInstance;
-    public GameObject fightButton;
     #endregion
 
+    #region Inspector Variables 
+    [Header("Fight Settings")]
+    [Space]
+    [Tooltip("A donde se va a mover la camara cuando haya una pelea.")]
+    public Transform battlePlaceTransform;
+    [Space]
+    [Tooltip("Para disparar la pelea.")]
+    public GameObject fightButton;
+    [Header("UI Settings")]
+    [Space]
+    [Tooltip("Para sincronizar con la interfase.")]
+    public GameObject uiController;
+    [Space]
+    [Tooltip("Para sincronizar con la interfase.")]
+    public UiController uiControllerInstance;
+    [Space]
+    [Tooltip("Lista de habitaciones.")]
+    public List<Transform> rooms;
+    [Space]
+    public Exclamation exclamation;
+    public List<GameObject> heroes;
+    public List<GameObject> minions;
+    #endregion
+
+    #region Private variables
+    private int randomNumber;
+    private Vector3 battlePosition;
+    private bool exclamationSpawned;
+    private Coroutine heroesAdvance;
+    private int roomHeroesAt;
+    private Exclamation exclamationInstance;
+    private bool inBattle;
+    private GameObject[] heroesPosition;
+    private GameObject[] minionsPosition;
+    #endregion
     private void Awake()
     {
         if(instance == null)
@@ -38,33 +74,41 @@ public class GameController : MonoBehaviour
     void Start()
     {
         uiControllerInstance = uiController.GetComponent<UiController>();
-        Debug.Log(uiControllerInstance);
-        
         minionsCount = 0;
         score = 0;
         screenbounds = GetScreenBounds();
         battlePosition = battlePlaceTransform.position;
+        randomNumber = 0;
+        exclamationSpawned = false;
+        roomHeroesAt = 0;
+        inBattle = false;
+        heroesPosition = GameObject.FindGameObjectsWithTag("HeroesPosition");
+        minionsPosition = GameObject.FindGameObjectsWithTag("MinionsPosition");
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (fightButton.GetComponent<FightButton>().goToFight)
+        randomNumber = Random.Range(0, 100000);
+
+        if (!inBattle && exclamationSpawned && fightButton.GetComponent<FightButton>().goToFight)
         {
             GoToBattlefield();
+            inBattle = true;
+            StartCoroutine(Battle());
+            StopCoroutine(heroesAdvance);
         }
-        if (Input.GetKeyDown(KeyCode.S))
+        
+        if (dayNight == DayNight.Day && !exclamationSpawned && randomNumber < 50)
         {
-            // FOR DEBUG only
-            uiControllerInstance.ChangeDayNight();
+            // generar party de heroes.
+            exclamationInstance = Instantiate(exclamation, rooms[roomHeroesAt].position, Quaternion.identity);
+            exclamationSpawned = true;
+            roomHeroesAt++;
+            heroesAdvance = StartCoroutine(HeroesAdvance());
         }
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            // FOR DEBUG only
-            GoToBattlefield();
-        }
-
-
+        
     }
     
     public void GoToBattlefield()
@@ -92,6 +136,35 @@ public class GameController : MonoBehaviour
     {
         minionsCount++;
 
+    }
+
+    private IEnumerator HeroesAdvance()
+    {
+        while(roomHeroesAt< rooms.Count)
+        {
+            yield return new WaitForSeconds(Random.Range(4, 10));
+            exclamationInstance.transform.position = rooms[roomHeroesAt].position;
+            roomHeroesAt++;
+        }
+        //exclamationInstance = Instantiate(exclamation, rooms[roomHeroesAt].position, Quaternion.identity);
+    }
+    private void ChangeDayPeriod()
+    {
+        uiControllerInstance.ChangeDayNight(dayNight);
+        if(dayNight == DayNight.Day)
+        {
+            dayNight = DayNight.Night;
+        }
+        else
+        {
+            dayNight = DayNight.Day;
+        }
+    }
+    public IEnumerator Battle()
+    {
+        Instantiate(minions[0], minionsPosition[0].transform.position, Quaternion.identity);
+        Instantiate(heroes[0], heroesPosition[0].transform.position, Quaternion.identity);
+        yield return null;
     }
     // Cuando un minion se meuere
     // Cuando matas un heroe se suma un body
