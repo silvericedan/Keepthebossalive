@@ -5,7 +5,8 @@ using UnityEngine;
 public class Entities : MonoBehaviour
 {
     #region variables
-    public int hitpoint;
+    [HideInInspector]
+    private int hitpoint;
     #endregion
     // Start is called before the first frame update
     void Start()
@@ -26,5 +27,13 @@ public class Entities : MonoBehaviour
     public void heal(int hp)
     {
         hitpoint += hp;
+    }
+    public int GetHitpoint()
+    {
+        return hitpoint;
+    }
+    public void SetHitpoint(int hp)
+    {
+        hitpoint = hp;
     }
 }
