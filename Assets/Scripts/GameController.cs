@@ -44,6 +44,9 @@ public class GameController : MonoBehaviour
     public Exclamation exclamation;
     public List<GameObject> heroes;
     public List<GameObject> minions;
+
+    public AudioSource mapMusic;
+    public AudioSource battleMusic;
     #endregion
 
     #region Private variables
@@ -92,9 +95,11 @@ public class GameController : MonoBehaviour
     void Update()
     {
         randomNumber = UnityEngine.Random.Range(0, 100000);
-
+        
         if (!inBattle && exclamationSpawned && fightButton.GetComponent<FightButton>().goToFight)
         {
+            mapMusic.Stop();
+            battleMusic.Play();
             GoToBattlefield();
             inBattle = true;
             StartCoroutine(Battle());
