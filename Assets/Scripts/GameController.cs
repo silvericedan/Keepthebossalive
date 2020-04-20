@@ -19,8 +19,6 @@ public class GameController : MonoBehaviour
     public int bodyCarcassCount;
     [HideInInspector]
     public Vector3 screenbounds;
-    [HideInInspector]
-    public DayNight dayNight = DayNight.Day;
     #endregion
 
     #region Inspector Variables 
@@ -44,9 +42,6 @@ public class GameController : MonoBehaviour
     [Tooltip("Lista de habitaciones.")]
     public List<Transform> rooms;
     [Space]
-    public Exclamation exclamation;
-    public List<GameObject> heroes;
-    public List<GameObject> minions;
 
     public AudioSource mapMusic;
     public AudioSource battleMusic;
@@ -56,65 +51,74 @@ public class GameController : MonoBehaviour
     private int randomNumber;
     private Vector3 battlePosition;
     private Vector3 mapPosition;
-    private bool exclamationSpawned;
-    private Coroutine heroesAdvance;
-    private int roomHeroesAt;
-    public Exclamation exclamationInstance;
+   
     private bool inBattle;
-    private GameObject[] heroesPosition;
-    private GameObject[] minionsPosition;
     #endregion
 
     public List<Mob> rosterMinions;
     public List<Mob> rosterTroops;
-    public List<GameObject> minionInFigth;
-    public List<GameObject> heroInFight;
     public GameObject botonCombate;
     private BattleMechanics scriptBotonCombate;
     public Text textLairBox;
+    public int waveNumber = 0;
+    public int hunger = 0;
 
 
     private void Awake()
     {
-        if(instance == null)
-        {
-            instance = this;
-        }
-        else
-        if(instance != this)
-        {
-            Destroy(gameObject);
-            DontDestroyOnLoad(gameObject);
-            
-        }
+        //if (instance == null)
+        //{
+        //    instance = this;
+        //}
+        //else
+        //if (instance != this)
+        //{
+        //    Destroy(gameObject);
+        //    DontDestroyOnLoad(gameObject);
+
+        //}
     }
     // Start is called before the first frame update
     void Start()
     {
-        heroInFight = new List<GameObject>();
-        minionInFigth = new List<GameObject>();
+
         uiControllerInstance = uiController.GetComponent<UiController>();
+        scriptBotonCombate = botonCombate.GetComponent<BattleMechanics>();
         minionsCount = 0;
         score = 0;
         screenbounds = GetScreenBounds();
         battlePosition = battlePlaceTransform.position;
         mapPosition = mapPlaceTransform.position;
-        randomNumber = 0;
-        exclamationSpawned = false;
-        roomHeroesAt = 0;
+        randomNumber = 0;   
         inBattle = false;
-        heroesPosition = GameObject.FindGameObjectsWithTag("HeroesPosition");
-        minionsPosition = GameObject.FindGameObjectsWithTag("MinionsPosition");
+     
 
-        rosterMinions.Add(new Zombie());
-        rosterMinions.Add(new Zombie());
-        rosterMinions.Add(new Zombie());
-
-        rosterTroops.Add(new Farmer());
-        rosterTroops.Add(new Farmer());
-        rosterTroops.Add(new Farmer());
+        rosterMinions.Add(new Undead());
+        rosterMinions.Add(new Undead());
+        rosterMinions.Add(new Undead());
 
         TextLairUpdate();
+    }
+
+    public void NextWave()
+    {
+        rosterTroops.Add(new Soldier());
+        waveNumber += 1;
+        for (int i = 0; i < waveNumber; i++)
+        {
+            rosterTroops.Add(new Soldier());
+        }
+
+    }
+
+    public void Hunger()
+    {
+        hunger += waveNumber + UnityEngine.Random.Range(0, 1);
+    }
+
+    public void EndGame()
+    {
+        SceneManager.LoadScene(0);
     }
 
     // Update is called once per frame
@@ -122,32 +126,47 @@ public class GameController : MonoBehaviour
     {
         randomNumber = UnityEngine.Random.Range(0, 100);
         
-        if (!inBattle && exclamationSpawned && fightButton.GetComponent<FightButton>().goToFight)
+        if (!inBattle && fightButton.GetComponent<FightButton>().goToFight)
         {
-            mapMusic.Stop();
-            battleMusic.Play();
-            GoToBattlefield();
-            inBattle = true;
-            StartCoroutine(Battle());
-            StopCoroutine(heroesAdvance);
+            if(hunger < 5)
+            {
+                Hunger();
+                mapMusic.Stop();
+                battleMusic.Play();
+                GoToBattlefield();
+                inBattle = true;
+                StartCoroutine(Battle());
+                //StopCoroutine(heroesAdvance);
+            }
+            else
+            {
+                EndGame();
+            }
+
+            
         }
         
-        if (dayNight == DayNight.Day && !exclamationSpawned && randomNumber < 50)
+        //if (dayNight == DayNight.Day && !exclamationSpawned && randomNumber < 50)
+        //{
+        //    // generar party de heroes.
+        //    exclamationInstance = Instantiate(exclamation, rooms[roomHeroesAt].position, Quaternion.identity);
+        //    exclamationSpawned = true;
+        //    roomHeroesAt++;
+        //    heroesAdvance = StartCoroutine(HeroesAdvance());
+        //}
+
+        if (Input.GetKey(KeyCode.Escape))
         {
-            // generar party de heroes.
-            exclamationInstance = Instantiate(exclamation, rooms[roomHeroesAt].position, Quaternion.identity);
-            exclamationSpawned = true;
-            roomHeroesAt++;
-            heroesAdvance = StartCoroutine(HeroesAdvance());
+            Application.Quit();
         }
-        
+
     }
     
     public void TextLairUpdate()
     {
         textLairBox.text = "Minions: " + rosterMinions.Count +" units \n";
         textLairBox.text += "Corpses " + bodyCarcassCount + "\n";
-        textLairBox.text += "Hunger "  + "\n"; //completar valor de hunger
+        textLairBox.text += "Hunger "  + hunger + "\n"; //completar valor de hunger
     }
 
     public void TextLairClean()
@@ -155,19 +174,29 @@ public class GameController : MonoBehaviour
         textLairBox.text = "";
     }
 
+
     public void GoToBattlefield()
     {
         
         SetCameraPosition(battlePosition);
         uiControllerInstance.DisableLairUI();
-        TextLairClean();
+        TextLairClean(); //limpiamos la pantalla del texto del dungeon
+        NextWave(); //llenamos el roster de enemigos con nuevos soldados
+        scriptBotonCombate.StartFirstRound();
+    }
+
+    public IEnumerator Battle()
+    {
+        scriptBotonCombate.setMinions(rosterMinions);
+        scriptBotonCombate.setTroops(rosterTroops);
+
+        yield return null;
     }
 
     public void ExitBattlefield()
     {
         SetCameraPosition(mapPosition);
         uiControllerInstance.EnableLairUI();
-        heroesAdvance = StartCoroutine(HeroesAdvance());
         inBattle = false;
         battleMusic.Stop();
         mapMusic.Play();
@@ -191,61 +220,9 @@ public class GameController : MonoBehaviour
         Vector3 screenVector = new Vector3(Screen.width, Screen.height, mainCamera.transform.position.z);
         return mainCamera.ScreenToWorldPoint(screenVector);
     }
-    public void GenerateMinions()
-    {
-        minionsCount++;
-
-    }
-
-    private IEnumerator HeroesAdvance()
-    {
-        while(roomHeroesAt< rooms.Count)
-        {
-            yield return new WaitForSeconds(UnityEngine.Random.Range(4, 10));
-            exclamationInstance.transform.position = rooms[roomHeroesAt].position;
-            roomHeroesAt++;
-        }
-        //exclamationInstance = Instantiate(exclamation, rooms[roomHeroesAt].position, Quaternion.identity);
-    }
-    private void ChangeDayPeriod()
-    {
-        uiControllerInstance.ChangeDayNight(dayNight);
-        if(dayNight == DayNight.Day)
-        {
-            dayNight = DayNight.Night;
-        }
-        else
-        {
-            dayNight = DayNight.Day;
-        }
-    }
     
-    public IEnumerator Battle()
-    {
-        
-        Debug.Log(rosterMinions[0]);
 
-        scriptBotonCombate = botonCombate.GetComponent<BattleMechanics>();
-        scriptBotonCombate.setMinions(rosterMinions);
-        scriptBotonCombate.setTroops(rosterTroops);
-        //for (int i = 0; i < rosterMinions.Count; i++)
-        //{
-        //    chooseMinion = UnityEngine.Random.Range(0, 2);
-        //    minionInFigth.Add(Instantiate(minions[chooseMinion], minionsPosition[i].transform.position, Quaternion.identity));
-        //}
-        //for (int i = 0; i < rosterTroops.Count; i++)
-        //{
-        //    heroInFight.Add(Instantiate(heroes[0], heroesPosition[i].transform.position, Quaternion.identity));
-        //}
-
-        yield return null;
-        //minionInFigth = Instantiate(minions[0], minionsPosition[0].transform.position, Quaternion.identity);
-        //heroInFight = Instantiate(heroes[0], heroesPosition[0].transform.position, Quaternion.identity);
-        //minionInFigth.GetComponent<MinionController>().SetHitpoint(100);
-        //heroInFight.GetComponent<HeroesController>().SetHitpoint(100);
-        // yield return new WaitForSeconds(2);
-        /// StartCoroutine(TheBattle());
-    }
+    
     int chooseMinion;
     private IEnumerator TheBattle()
     {
@@ -258,27 +235,25 @@ public class GameController : MonoBehaviour
        
         yield return null;
     }
-    // Cuando un minion se meuere
-    // Cuando matas un heroe se suma un body
-    public void DestroyMinion()
-    {
-        Destroy(minionInFigth[minionInFigth.Count - 1]);
-        minionInFigth.RemoveAt(minionInFigth.Count - 1);
-    }
-    public void DestroyTroop()
-    {
-        Destroy(heroInFight[heroInFight.Count - 1]);
-        heroInFight.RemoveAt(heroInFight.Count - 1);
-    }
+ 
     public void SummonMinion()
     {
         if(bodyCarcassCount >=1)
         {
-            rosterMinions.Add(new Zombie());
+            rosterMinions.Add(new Undead());
             bodyCarcassCount -= 1;
             TextLairUpdate();
         }
     }
 
+    public void CureBoss()
+    {
+        if (hunger >= 1)
+        {
+            hunger -= 1;
+            bodyCarcassCount -= 1;
+            TextLairUpdate();
+        }
+    }
 
 }

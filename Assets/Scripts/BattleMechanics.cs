@@ -13,17 +13,19 @@ public class BattleMechanics : MonoBehaviour
     private GameController gameControllerScript;
     public int bodyCount;
     public bool isBattle;
+    public bool lostBattle = false;
 
     private void Start()
     {
-        gameControllerScript = gameController.GetComponent<GameController>();
-        isBattle = true;
+        gameControllerScript = gameController.GetComponent<GameController>();     
     }
 
     //Esta clase deberia inicializarse al comenzar el juego, ya que lleva el conteo de los cuerpos
     public void StartFirstRound()
     {
         bodyCount = 0;
+        textInsideBox.text = "Wave N° " + gameControllerScript.waveNumber + "\n";
+        isBattle = true;
     }
     #region Getters y Seters
     public void setMinions(List<Mob> listaMinions)
@@ -53,7 +55,15 @@ public class BattleMechanics : MonoBehaviour
 
     public void ExitCombat() //se lo llama desde ExitButton
     {    
+        if (!lostBattle)
+        {
             gameControllerScript.ExitBattlefield();
+        }
+        else
+        {
+            gameControllerScript.EndGame();
+        }
+            
     }
 
     public void Combat()
@@ -99,7 +109,8 @@ public class BattleMechanics : MonoBehaviour
                 {
                     textInsideBox.text += "You have lost the battle...";
                     gameControllerScript.bodyCarcassCount += bodyCount;
-                    isBattle = false;                  
+                    isBattle = false;
+                    lostBattle = true;
                 }
             }
         }

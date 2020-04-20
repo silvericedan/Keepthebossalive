@@ -2,24 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Exclamation : MonoBehaviour
+public class CureButton : MonoBehaviour
 {
+    public GameObject gameController;
+    private GameController gameControllerScript;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        gameControllerScript = gameController.GetComponent<GameController>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
-    }
-    private void OnMouseOver()
-    {
+
     }
     private void OnMouseDown()
     {
-        Debug.Log("Hola");
+        gameControllerScript.CureBoss();
     }
+    
 }
