@@ -7,6 +7,7 @@ public class Farmer : Mob
     public Farmer()
     {
         bonus = 0;
+        nombre = "Farmer";
     }
 
 }

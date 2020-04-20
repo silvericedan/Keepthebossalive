@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public enum DayNight { Day, Night }
 public class GameController : MonoBehaviour
@@ -58,7 +59,7 @@ public class GameController : MonoBehaviour
     private bool exclamationSpawned;
     private Coroutine heroesAdvance;
     private int roomHeroesAt;
-    private Exclamation exclamationInstance;
+    public Exclamation exclamationInstance;
     private bool inBattle;
     private GameObject[] heroesPosition;
     private GameObject[] minionsPosition;
@@ -70,6 +71,8 @@ public class GameController : MonoBehaviour
     public List<GameObject> heroInFight;
     public GameObject botonCombate;
     private BattleMechanics scriptBotonCombate;
+    public Text textLairBox;
+
 
     private void Awake()
     {
@@ -111,6 +114,7 @@ public class GameController : MonoBehaviour
         rosterTroops.Add(new Farmer());
         rosterTroops.Add(new Farmer());
 
+        TextLairUpdate();
     }
 
     // Update is called once per frame
@@ -139,11 +143,24 @@ public class GameController : MonoBehaviour
         
     }
     
+    public void TextLairUpdate()
+    {
+        textLairBox.text = "Minions: " + rosterMinions.Count +" units \n";
+        textLairBox.text += "Corpses " + bodyCarcassCount + "\n";
+        textLairBox.text += "Hunger "  + "\n"; //completar valor de hunger
+    }
+
+    public void TextLairClean()
+    {
+        textLairBox.text = "";
+    }
+
     public void GoToBattlefield()
     {
         
         SetCameraPosition(battlePosition);
         uiControllerInstance.DisableLairUI();
+        TextLairClean();
     }
 
     public void ExitBattlefield()
@@ -152,6 +169,12 @@ public class GameController : MonoBehaviour
         uiControllerInstance.EnableLairUI();
         heroesAdvance = StartCoroutine(HeroesAdvance());
         inBattle = false;
+        battleMusic.Stop();
+        mapMusic.Play();
+
+        TextLairUpdate();
+
+
     }
     public void SetCameraPosition(Vector3 position)
     {
@@ -205,15 +228,15 @@ public class GameController : MonoBehaviour
         scriptBotonCombate = botonCombate.GetComponent<BattleMechanics>();
         scriptBotonCombate.setMinions(rosterMinions);
         scriptBotonCombate.setTroops(rosterTroops);
-        for (int i = 0; i < rosterMinions.Count; i++)
-        {
-            chooseMinion = UnityEngine.Random.Range(0, 2);
-            minionInFigth.Add(Instantiate(minions[chooseMinion], minionsPosition[i].transform.position, Quaternion.identity));
-        }
-        for (int i = 0; i < rosterTroops.Count; i++)
-        {
-            heroInFight.Add(Instantiate(heroes[0], heroesPosition[i].transform.position, Quaternion.identity));
-        }
+        //for (int i = 0; i < rosterMinions.Count; i++)
+        //{
+        //    chooseMinion = UnityEngine.Random.Range(0, 2);
+        //    minionInFigth.Add(Instantiate(minions[chooseMinion], minionsPosition[i].transform.position, Quaternion.identity));
+        //}
+        //for (int i = 0; i < rosterTroops.Count; i++)
+        //{
+        //    heroInFight.Add(Instantiate(heroes[0], heroesPosition[i].transform.position, Quaternion.identity));
+        //}
 
         yield return null;
         //minionInFigth = Instantiate(minions[0], minionsPosition[0].transform.position, Quaternion.identity);
@@ -231,6 +254,7 @@ public class GameController : MonoBehaviour
         scriptBotonCombate = botonCombate.GetComponent<BattleMechanics>();
         scriptBotonCombate.setMinions(rosterMinions);
         scriptBotonCombate.setTroops(rosterTroops);
+        scriptBotonCombate.StartFirstRound();
        
         yield return null;
     }
@@ -246,4 +270,15 @@ public class GameController : MonoBehaviour
         Destroy(heroInFight[heroInFight.Count - 1]);
         heroInFight.RemoveAt(heroInFight.Count - 1);
     }
+    public void SummonMinion()
+    {
+        if(bodyCarcassCount >=1)
+        {
+            rosterMinions.Add(new Zombie());
+            bodyCarcassCount -= 1;
+            TextLairUpdate();
+        }
+    }
+
+
 }

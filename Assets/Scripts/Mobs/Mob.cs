@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Mob : MonoBehaviour
+public abstract class Mob : Object
 {
     public int bonus;
+
+    public string nombre;
 
     public int rollDice()
     {

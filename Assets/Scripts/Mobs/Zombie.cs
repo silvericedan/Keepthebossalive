@@ -7,5 +7,6 @@ public class Zombie : Mob
     public Zombie()
     {
         bonus = 0;
+        nombre = "Zombie";
     }
 }
