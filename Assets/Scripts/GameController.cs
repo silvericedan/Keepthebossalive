@@ -66,7 +66,8 @@ public class GameController : MonoBehaviour
 
     public List<Mob> rosterMinions;
     public List<Mob> rosterTroops;
-
+    public List<GameObject> minionInFigth;
+    public List<GameObject> heroInFight;
     public GameObject botonCombate;
     private BattleMechanics scriptBotonCombate;
 
@@ -87,6 +88,8 @@ public class GameController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        heroInFight = new List<GameObject>();
+        minionInFigth = new List<GameObject>();
         uiControllerInstance = uiController.GetComponent<UiController>();
         minionsCount = 0;
         score = 0;
@@ -113,7 +116,7 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        randomNumber = UnityEngine.Random.Range(0, 100000);
+        randomNumber = UnityEngine.Random.Range(0, 100);
         
         if (!inBattle && exclamationSpawned && fightButton.GetComponent<FightButton>().goToFight)
         {
@@ -193,26 +196,54 @@ public class GameController : MonoBehaviour
             dayNight = DayNight.Day;
         }
     }
-    GameObject minionInFigth;
-    GameObject heroInFight;
+    
     public IEnumerator Battle()
     {
-         //minionInFigth = Instantiate(minions[0], minionsPosition[0].transform.position, Quaternion.identity);
-         //heroInFight = Instantiate(heroes[0], heroesPosition[0].transform.position, Quaternion.identity);
-        //minionInFigth.GetComponent<MinionController>().SetHitpoint(100);
-        //heroInFight.GetComponent<HeroesController>().SetHitpoint(100);
-        yield return new WaitForSeconds(2);
-        StartCoroutine(TheBattle());
-    }
+        
+        Debug.Log(rosterMinions[0]);
 
-    private IEnumerator TheBattle()
-    {
         scriptBotonCombate = botonCombate.GetComponent<BattleMechanics>();
         scriptBotonCombate.setMinions(rosterMinions);
         scriptBotonCombate.setTroops(rosterTroops);
-     
+        for (int i = 0; i < rosterMinions.Count; i++)
+        {
+            chooseMinion = UnityEngine.Random.Range(0, 2);
+            minionInFigth.Add(Instantiate(minions[chooseMinion], minionsPosition[i].transform.position, Quaternion.identity));
+        }
+        for (int i = 0; i < rosterTroops.Count; i++)
+        {
+            heroInFight.Add(Instantiate(heroes[0], heroesPosition[i].transform.position, Quaternion.identity));
+        }
+
+        yield return null;
+        //minionInFigth = Instantiate(minions[0], minionsPosition[0].transform.position, Quaternion.identity);
+        //heroInFight = Instantiate(heroes[0], heroesPosition[0].transform.position, Quaternion.identity);
+        //minionInFigth.GetComponent<MinionController>().SetHitpoint(100);
+        //heroInFight.GetComponent<HeroesController>().SetHitpoint(100);
+        // yield return new WaitForSeconds(2);
+        /// StartCoroutine(TheBattle());
+    }
+    int chooseMinion;
+    private IEnumerator TheBattle()
+    {
+        Debug.Log(rosterMinions[0]);
+
+        scriptBotonCombate = botonCombate.GetComponent<BattleMechanics>();
+        scriptBotonCombate.setMinions(rosterMinions);
+        scriptBotonCombate.setTroops(rosterTroops);
+       
         yield return null;
     }
     // Cuando un minion se meuere
     // Cuando matas un heroe se suma un body
+    public void DestroyMinion()
+    {
+        Destroy(minionInFigth[minionInFigth.Count - 1]);
+        minionInFigth.RemoveAt(minionInFigth.Count - 1);
+    }
+    public void DestroyTroop()
+    {
+        Destroy(heroInFight[heroInFight.Count - 1]);
+        heroInFight.RemoveAt(heroInFight.Count - 1);
+    }
 }
