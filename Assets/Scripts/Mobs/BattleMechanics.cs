@@ -18,6 +18,7 @@ public class BattleMechanics : MonoBehaviour
     //Esta clase deberia inicializarse al comenzar el juego, ya que lleva el conteo de los cuerpos
     public BattleMechanics(List<Mob> listaMinions, List<Mob> listaTroops)
     {
+
         setMinions(listaMinions);
         setTroops(listaTroops);
     }
@@ -60,9 +61,11 @@ public class BattleMechanics : MonoBehaviour
         {
             troopsAttack += troop.rollDice();
         }
-
+        Debug.Log("Minion Attack " + minionsAttack);
+        Debug.Log("Troop Attack " + troopsAttack);
         if (minionsAttack >= troopsAttack)
         {
+            gameControllerScript.DestroyTroop();
             troops.RemoveAt(Random.Range(0, troops.Count-1));
             Debug.Log("una tropa menos");
             if(troops.Count == 0)
@@ -73,6 +76,7 @@ public class BattleMechanics : MonoBehaviour
         }
         else
         {
+            gameControllerScript.DestroyMinion();
             minions.RemoveAt(Random.Range(0, minions.Count-1));
             Debug.Log("un minion destruido");
             if (minions.Count == 0)
