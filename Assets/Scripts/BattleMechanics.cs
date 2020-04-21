@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,12 +15,27 @@ public class BattleMechanics : MonoBehaviour
     public int bodyCount;
     public bool isBattle;
     public bool lostBattle = false;
+    public GameObject dialogBox;
+    public GameObject restartButton;
 
+    public bool gameOver;
+
+    private WaitForSeconds waitALittle;
     private void Start()
     {
-        gameControllerScript = gameController.GetComponent<GameController>();     
+        waitALittle = new WaitForSeconds(2);
+        gameOver = false;
+        gameControllerScript = gameController.GetComponent<GameController>();
+        dialogBox.GetComponent<SpriteRenderer>().enabled = false;
+        restartButton.GetComponent<SpriteRenderer>().enabled = false;
     }
-
+    private void Update()
+    {
+        if (gameOver && restartButton.GetComponent<okbutton1>().pressed)
+        {
+            gameControllerScript.EndGame();
+        }
+    }
     //Esta clase deberia inicializarse al comenzar el juego, ya que lleva el conteo de los cuerpos
     public void StartFirstRound()
     {
@@ -61,9 +77,16 @@ public class BattleMechanics : MonoBehaviour
         }
         else
         {
-            gameControllerScript.EndGame();
+            dialogBox.GetComponent<SpriteRenderer>().enabled = true;
+            restartButton.GetComponent<SpriteRenderer>().enabled = true;
+            StartCoroutine(gameOverWait());
         }
             
+    }
+    public IEnumerator gameOverWait()
+    {
+        yield return waitALittle;
+        gameOver = true;
     }
 
     public void Combat()
