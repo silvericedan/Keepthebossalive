@@ -88,6 +88,14 @@ public class BattleMechanics : MonoBehaviour
         yield return waitALittle;
         gameOver = true;
     }
+    private void OnMouseEnter()
+    {
+        gameObject.GetComponent<SpriteRenderer>().color = Color.gray;
+    }
+    private void OnMouseExit()
+    {
+        gameObject.GetComponent<SpriteRenderer>().color = Color.white;
+    }
 
     public void Combat()
     {

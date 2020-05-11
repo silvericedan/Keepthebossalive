@@ -22,5 +22,14 @@ public class CallButton : MonoBehaviour
     {
         gameControllerScript.SummonMinion();
     }
-    
+
+    private void OnMouseEnter()
+    {
+        gameObject.GetComponent<SpriteRenderer>().color = Color.gray;
+    }
+    private void OnMouseExit()
+    {
+        gameObject.GetComponent<SpriteRenderer>().color = Color.white;
+    }
+
 }

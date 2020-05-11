@@ -5,20 +5,15 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public enum DayNight { Day, Night }
 public class GameController : MonoBehaviour
 {
     #region Public Variables 
     [HideInInspector]
     public static GameController instance = null;
     [HideInInspector]
-    public int score;
-    [HideInInspector]
-    public int minionsCount;
-    [HideInInspector]
     public int bodyCarcassCount;
     [HideInInspector]
-    public Vector3 screenbounds;
+    public Vector3 mapPosition;
     #endregion
 
     #region Inspector Variables 
@@ -26,79 +21,84 @@ public class GameController : MonoBehaviour
     [Space]
     [Tooltip("A donde se va a mover la camara cuando haya una pelea.")]
     public Transform battlePlaceTransform;
-
     public Transform mapPlaceTransform;
-    [Space]
     [Tooltip("Para disparar la pelea.")]
     public GameObject fightButton;
+    [Space]
     [Header("UI Settings")]
     [Space]
     [Tooltip("Para sincronizar con la interfase.")]
     public GameObject uiController;
+  
     [Space]
-    [Tooltip("Para sincronizar con la interfase.")]
-    public UiController uiControllerInstance;
-    [Space]
-    [Tooltip("Lista de habitaciones.")]
-    public List<Transform> rooms;
-    [Space]
-
+    [Header("Music")]
     public AudioSource mapMusic;
     public AudioSource battleMusic;
     #endregion
 
     #region Private variables
-    private int randomNumber;
     private Vector3 battlePosition;
-    private Vector3 mapPosition;
-   
-    private bool inBattle;
     #endregion
 
+    public GameObject Tutorial;
     public List<Mob> rosterMinions;
     public List<Mob> rosterTroops;
     public GameObject botonCombate;
     private BattleMechanics scriptBotonCombate;
     public Text textLairBox;
     public int waveNumber = 0;
+    [HideInInspector]
     public int hunger = 0;
 
+    /*CORE*/
+    #region CORE
+    private GameBaseState currentState;
 
-    private void Awake()
+    public readonly GameTutorialState TutorialState = new GameTutorialState();
+    public readonly GameLairState LairState = new GameLairState();
+    public readonly GameFightState FightState = new GameFightState();
+    public readonly GameOverState GameOver = new GameOverState();
+    public GameBaseState CurrentState
     {
-        //if (instance == null)
-        //{
-        //    instance = this;
-        //}
-        //else
-        //if (instance != this)
-        //{
-        //    Destroy(gameObject);
-        //    DontDestroyOnLoad(gameObject);
-
-        //}
+        get { return currentState; }
     }
-    // Start is called before the first frame update
+    #endregion
+
+    #region MONOBEHAVIOUR CYCLES
     void Start()
     {
+        TransitionToState(TutorialState);
 
-        uiControllerInstance = uiController.GetComponent<UiController>();
         scriptBotonCombate = botonCombate.GetComponent<BattleMechanics>();
-        minionsCount = 0;
-        score = 0;
-        screenbounds = GetScreenBounds();
+
         battlePosition = battlePlaceTransform.position;
         mapPosition = mapPlaceTransform.position;
-        randomNumber = 0;   
-        inBattle = false;
      
 
         rosterMinions.Add(new Undead());
         rosterMinions.Add(new Undead());
         rosterMinions.Add(new Undead());
 
-        TextLairUpdate();
+        
     }
+    void Update()
+    {
+        currentState.Update(this);
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+
+    }
+    #endregion
+
+    #region CONTEXT
+    public void TransitionToState(GameBaseState gameState)
+    {
+        currentState = gameState;
+        currentState.EnterState(this);
+    }
+    #endregion
 
     public void NextWave()
     {
@@ -121,46 +121,7 @@ public class GameController : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        randomNumber = UnityEngine.Random.Range(0, 100);
-        
-        if (!inBattle && fightButton.GetComponent<FightButton>().goToFight)
-        {
-            if(hunger < 5)
-            {
-                Hunger();
-                mapMusic.Stop();
-                battleMusic.Play();
-                GoToBattlefield();
-                inBattle = true;
-                StartCoroutine(Battle());
-                //StopCoroutine(heroesAdvance);
-            }
-            else
-            {
-                EndGame();
-            }
-
-            
-        }
-        
-        //if (dayNight == DayNight.Day && !exclamationSpawned && randomNumber < 50)
-        //{
-        //    // generar party de heroes.
-        //    exclamationInstance = Instantiate(exclamation, rooms[roomHeroesAt].position, Quaternion.identity);
-        //    exclamationSpawned = true;
-        //    roomHeroesAt++;
-        //    heroesAdvance = StartCoroutine(HeroesAdvance());
-        //}
-
-        if (Input.GetKey(KeyCode.Escape))
-        {
-            Application.Quit();
-        }
-
-    }
+  
     
     public void TextLairUpdate()
     {
@@ -179,7 +140,6 @@ public class GameController : MonoBehaviour
     {
         
         SetCameraPosition(battlePosition);
-        uiControllerInstance.DisableLairUI();
         TextLairClean(); //limpiamos la pantalla del texto del dungeon
         NextWave(); //llenamos el roster de enemigos con nuevos soldados
         scriptBotonCombate.StartFirstRound();
@@ -196,11 +156,8 @@ public class GameController : MonoBehaviour
     public void ExitBattlefield()
     {
         SetCameraPosition(mapPosition);
-        uiControllerInstance.EnableLairUI();
-        inBattle = false;
         battleMusic.Stop();
         mapMusic.Play();
-
         TextLairUpdate();
 
 
@@ -214,27 +171,10 @@ public class GameController : MonoBehaviour
                 mainCamera.transform.position.z);
     }
 
-    private Vector3 GetScreenBounds()
-    {
-        Camera mainCamera = Camera.main;
-        Vector3 screenVector = new Vector3(Screen.width, Screen.height, mainCamera.transform.position.z);
-        return mainCamera.ScreenToWorldPoint(screenVector);
-    }
     
 
     
-    int chooseMinion;
-    private IEnumerator TheBattle()
-    {
-        Debug.Log(rosterMinions[0]);
-
-        scriptBotonCombate = botonCombate.GetComponent<BattleMechanics>();
-        scriptBotonCombate.setMinions(rosterMinions);
-        scriptBotonCombate.setTroops(rosterTroops);
-        scriptBotonCombate.StartFirstRound();
-       
-        yield return null;
-    }
+ 
  
     public void SummonMinion()
     {

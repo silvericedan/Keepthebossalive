@@ -25,6 +25,14 @@ public class ExitButton : MonoBehaviour
         }
         
     }
+    private void OnMouseEnter()
+    {
+        gameObject.GetComponent<SpriteRenderer>().color = Color.gray;
+    }
+    private void OnMouseExit()
+    {
+        gameObject.GetComponent<SpriteRenderer>().color = Color.white;
+    }
 
 
 }
